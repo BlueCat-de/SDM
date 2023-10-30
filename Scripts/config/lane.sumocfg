@@ -1,0 +1,24 @@
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="lane.net.xml" />
+        <route-files value="lane.rou.xml" />
+    </input>
+
+    <time>
+        <begin value="0" />
+        <end value="2000" />
+        <step-length value="0.04" />
+    </time>
+
+    <report>
+        <no-warnings value="true" />
+    </report>
+
+    <gui_only>
+        <gui-settings-file value="lane.settings.xml" />
+        <start value="true" />
+        <tracker-interval value="0.1" />
+    </gui_only>
+
+</configuration>

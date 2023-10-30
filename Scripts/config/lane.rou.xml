@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes>
+    <vType id="AV" color="1,0,0" accel="5.88" decel="7.84" sigma="0" length="5.0" width="1.8" height="1.5" minGap="0.1" maxSpeed="40.0" guiShape="passenger/sedan" lcKeepRight="0.0" lcPushy="0.5"/>
+    <vType id="BV" color="1,1,0" accel="5.88" decel="7.84" sigma="0" length="5.0" width="1.8" height="1.5" minGap="0.1" maxSpeed="40.0" guiShape="passenger/sedan" lcKeepRight="0.0" lcPushy="0.5"/>
+    <route id="straight" edges="lane" />
+
+</routes>
