@@ -55,7 +55,7 @@ parser.add_argument('--pretrain_replay_buffer_size', type = int, default = 10000
 parser.add_argument('--is_SN', type = str, default = 'True', choices = ['True', 'False'])
 parser.add_argument('--is_LN', type = str, default = '')
 parser.add_argument('--use_auto_alpha', default = 'False', type = str, choices = ['True', 'False'])
-parser.add_argument('--backup_entropy', default = 'False', type = str, choices = ['True', 'False'])
+parser.add_argument('--backup_entropy', default = 'True', type = str, choices = ['True', 'False'])
 parser.add_argument('--num_save', type = int, default = 5)
 args = parser.parse_args()
 args.is_save = True if args.is_save == 'True' else False
