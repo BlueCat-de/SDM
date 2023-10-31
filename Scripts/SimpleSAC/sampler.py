@@ -11,13 +11,13 @@ class StepSampler(object):
         self._traj_steps = 0
 
     def sample(self, ego_policy, adv_policy, n_steps, deterministic = False, replay_buffer = None, joint_noise_std = 0.):
-        observations = []
-        actions_ego = []
-        actions_adv = []
-        rewards_ego = []
-        rewards_adv = []
-        next_observations = []
-        dones = []
+        # observations = []
+        # actions_ego = []
+        # actions_adv = []
+        # rewards_ego = []
+        # rewards_adv = []
+        # next_observations = []
+        # dones = []
         self.env.traci_start()
         self._current_observation = self.env.reset(self.env.ego_policy, self.env.adv_policy)
         for _ in range(n_steps):
@@ -46,13 +46,13 @@ class StepSampler(object):
             else:
                 next_observation, reward, done, _ = self.env.step(action_ego, action_adv)
 
-            observations.append(observation)
-            actions_ego.append(action_ego)
-            actions_adv.append(action_adv)
-            rewards_ego.append(reward[0])
-            rewards_adv.append(reward[1])
-            dones.append(done)
-            next_observations.append(next_observation)
+            # observations.append(observation)
+            # actions_ego.append(action_ego)
+            # actions_adv.append(action_adv)
+            # rewards_ego.append(reward[0])
+            # rewards_adv.append(reward[1])
+            # dones.append(done)
+            # next_observations.append(next_observation)
 
             # add samples derived from current policy to replay buffer
             if replay_buffer is not None:

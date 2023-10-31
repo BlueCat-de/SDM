@@ -394,9 +394,9 @@ class Env:
             cost_adv = 0
             if done:
                 if 0 in self.CollidingVehs:
-                    cost_adv += 100
+                    cost_adv += 10
                 elif len(self.CollidingVehs) != 0:
-                    cost_adv += -100
+                    cost_adv += - 20 * len(self.CollidingVehs)
                 else:
                     cost_adv += 0
             else:
@@ -425,7 +425,7 @@ class Env:
             if done:
                 
                 if 0 in self.CollidingVehs:
-                    cost_adv += 20
+                    cost_adv += 10
                 elif len(self.CollidingVehs) != 0:
                     cost_adv += -20
                 else:
@@ -434,7 +434,7 @@ class Env:
 
                 speed_cost_ego = ego_state[2] / self.max_speed
                 # yaw_cost_ego = 1 - abs(ego_state[3]) / (np.pi / 3) * (ego_state[2] / self.max_speed)
-                yaw_cost_ego = - abs(ego_state[3]) / (np.pi / 3) * 0
+                yaw_cost_ego = - abs(ego_state[3]) / (np.pi / 3)
                 cost_adv -= speed_cost_ego + yaw_cost_ego
 
                 

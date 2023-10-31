@@ -129,7 +129,7 @@ class SDM(object):
         )
         
         ego_policy_loss = ((alpha_ego * log_pi_ego) - q_new_actions_ego).mean()
-        adv_policy_loss = ((alpha_adv * log_pi_adv) - q_new_actions_adv).mean()
+        adv_policy_loss = ((alpha_adv * log_pi_adv) - q_new_actions_adv - self.config.reg_scale * q_new_actions_ego).mean()
 
         # ipdb.set_trace()
         q1_pred_ego = self.qf1_ego(observations, actions_ego.detach(), actions_adv.detach())
@@ -160,8 +160,8 @@ class SDM(object):
         qf_ego_loss = qf1_ego_loss + qf2_ego_loss
 
         # TODO: add regularization
-        q_target_adv = self.config.reward_scale * torch.squeeze(rewards_adv, -1) + (1. - torch.squeeze(dones, -1)) * self.config.discount * target_q_values_adv \
-                        + self.config.reg_scale * torch.squeeze(rewards_ego, -1)
+        q_target_adv = self.config.reward_scale * torch.squeeze(rewards_adv, -1) + (1. - torch.squeeze(dones, -1)) * self.config.discount * target_q_values_adv
+
         qf1_adv_loss = F.mse_loss(q1_pred_adv, q_target_adv.detach()) # to minimize
         qf2_adv_loss = F.mse_loss(q2_pred_adv, q_target_adv.detach()) # to minimize
         qf_adv_loss = qf1_adv_loss + qf2_adv_loss
