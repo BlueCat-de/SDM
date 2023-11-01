@@ -4,14 +4,19 @@ SDM (Stackelberg Driver Model) ([https://arxiv.org/abs/2309.14235](https://arxiv
 # Installation and Setups
 To install the dependencies, run the command:
 
-```python
+```bash
 conda create --name SDM --file requirements.txt
+```
+Then, download our pre-processed dataset from [here](https://cloud.tsinghua.edu.cn/f/476b8b8824944f4b89dd/?dl=1), and unzip it using
+
+```bash
+unzip dataset.zip
 ```
 
 # Run Experiments
 We run experiments on SDM, Non-Game, SimGM, NSD and I-SDM. To begin with, enter the folder `Scripts`:
 
-```python
+```bash
 cd Scripts
 ```
 
@@ -19,26 +24,26 @@ Then you can run SDM and baselines using following example commands.
 
 ## Train AV and BV using SDM
 
-```python
+```bash
 python main_spg_ac_inv.py --r_ego stackelberg --r_adv stackelberg --is_save True --save_model True --adv_policy sumo --num_agents 5
 ```
 
 ## Train AV and BV using NSG
 
-```python
+```bash
 python main_NSG.py --r_adv stackelberg3 --r_ego stackelberg --is_save True --save_model True --pretrain_ego True --adv_policy sumo --num_agents 5
 ```
 
 ## Train AV and BV using SimGM
 
-```python
+```bash
 python main_SimGM.py --r_adv stackelberg2 --r_ego stackelberg --is_save True --save_model True --pretrain_ego True --adv_policy sumo --num_agents 5
 ```
 
 # Visualization of Learning Curves
 You can resort to [wandb](https://wandb.ai/site) to login your personal account with your wandb API key.
 
-```
+```bash
 export WANDB_API_KEY=YOUR_WANDB_API_KEY
 ```
 
