@@ -167,7 +167,7 @@ def prefix_metrics(metrics, prefix):
         '{}/{}'.format(prefix, key): value for key, value in metrics.items()
         }
 
-def eval(metrics, ego_policy, adv_policy, trajs):
+def Eval(metrics, ego_policy, adv_policy, trajs):
     # ipdb.set_trace()
     metrics[f'{ego_policy}_{adv_policy}/average_return_adv'] = np.mean([np.mean(t['rewards_adv']) for t in trajs])
     metrics[f'{ego_policy}_{adv_policy}/average_return_ego'] = np.mean([np.mean(t['rewards_ego']) for t in trajs])
@@ -181,3 +181,15 @@ def eval(metrics, ego_policy, adv_policy, trajs):
     metrics[f'{ego_policy}_{adv_policy}/CPS'] = (metrics[f'{ego_policy}_{adv_policy}/metrics_av_crash'] * len(trajs)) / np.sum([t["traj_time"] for t in trajs])
     metrics[f'{ego_policy}_{adv_policy}/CPM'] = (metrics[f'{ego_policy}_{adv_policy}/metrics_av_crash'] * len(trajs)) / np.sum([t["traj_dis"] for t in trajs])
     metrics[f'{ego_policy}_{adv_policy}/ego_speed'] = np.mean([np.mean(t['ego_speed']) for t in trajs])
+
+
+def Count_tensors():
+    cnt = 0
+    for obj in gc.get_objects():
+        try:
+            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                # print(type(obj), obj.size(), obj.device)
+                cnt += 1
+        except:
+            pass
+    return cnt

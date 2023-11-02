@@ -10,7 +10,19 @@ import torch.autograd as autograd
 from torch.nn.utils import spectral_norm
 import ipdb
 # from copy import deepcopy
+# from ....utils import Count_tensors
 
+def Count_tensors():
+    import gc
+    cnt = 0
+    for obj in gc.get_objects():
+        try:
+            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                # print(type(obj), obj.size(), obj.device)
+                cnt += 1
+        except:
+            pass
+    return cnt
 
 def extend_and_repeat(tensor, dim, repeat):
     # Extend and repeast the tensor along dim axie and repeat it
@@ -220,14 +232,18 @@ class SamplerPolicy(object):
             observations = torch.tensor(
                 observations, dtype=torch.float32, device=self.device, requires_grad=False
             )
+        
+        # C = Count_tensors()
         # ipdb.set_trace()
         if self.grad:
-            actions, _ = self.policy(observations, deterministic)
+            with torch.no_grad():
+                actions, _ = self.policy(observations, deterministic)
         else:
             with torch.no_grad():
                 actions, _ = self.policy(observations, deterministic)
                 actions = actions.cpu().numpy()
-
+        # C = Count_tensors()
+        # ipdb.set_trace()
         return actions
 
 

@@ -3,6 +3,19 @@ from datetime import datetime
 import ipdb
 import torch
 
+def Count_tensors():
+    import gc
+    cnt = 0
+    for obj in gc.get_objects():
+        try:
+            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                # print(type(obj), obj.size(), obj.device)
+                cnt += 1
+        except:
+            pass
+    return cnt
+
+
 class StepSampler(object):
 
     def __init__(self, env, max_traj_length = 1000):
@@ -64,6 +77,16 @@ class StepSampler(object):
                 self._current_observation = self.env.reset(self.env.ego_policy, self.env.adv_policy)
             else:
                 self._current_observation = next_observation
+
+            
+            # C = Count_tensors()
+            # ipdb.set_trace()
+            # action_ego = action_ego.cpu()
+            # action_adv = action_adv.cpu()
+            # torch.cuda.empty_cache()
+            # C = Count_tensors()
+            # ipdb.set_trace()
+
         self.env.traci_close()
         
     @property
