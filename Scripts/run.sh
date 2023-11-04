@@ -1,0 +1,1 @@
+taskset -c 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18 python main_SDM.py --device cuda:1 --is_save True --save_model True --used_wandb True --reg_scale 1 --n_loops 20

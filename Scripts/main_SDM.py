@@ -40,7 +40,7 @@ parser.add_argument('--qf_arch', type = str, default = '256-256')
 parser.add_argument('--batch_size', type = int, default = 64)
 parser.add_argument('--reg_scale', type = float, default = 0.2)
 parser.add_argument('--n_epochs', type = int, default = 100)
-parser.add_argument('--n_loops', type = int, default = 10)
+parser.add_argument('--n_loops', type = int, default = 20)
 parser.add_argument('--n_rollout_steps_per_epoch', type = int, default = 1000)
 parser.add_argument('--n_train_step_per_epoch', type = int, default = 500)
 parser.add_argument('--pretrain_ego', type = str, default = 'True', choices = ['True', 'False'])
@@ -50,7 +50,7 @@ parser.add_argument('--pretrain_steps', type = int, default = 500)
 parser.add_argument('--load_pretrain_ego', type = str, default = 'False', choices = ['True', 'False'])
 parser.add_argument('--pretrain_ego_path', type = str, default = '')
 parser.add_argument('--reset_rb', type = str, default = 'False', choices = ['True', 'False'])
-parser.add_argument('--replay_buffer_size', type = int, default = 10000)
+parser.add_argument('--replay_buffer_size', type = int, default = 100000)
 parser.add_argument('--pretrain_replay_buffer_size', type = int, default = 1000000)
 parser.add_argument('--is_SN', type = str, default = 'True', choices = ['True', 'False'])
 parser.add_argument('--is_LN', type = str, default = '')
@@ -502,7 +502,7 @@ def main(argv):
 
         # save model for matric Eval
         # ipdb.set_trace()
-        if l % (FLAGS.n_loops / FLAGS.num_save) == 0:
+        if l % (FLAGS.n_loops / FLAGS.num_save) == 0 or l == FLAGS.n_loops - 1:
             # ipdb.set_trace()
             torch.save(model, os.path.join(eval_savepath, 'models', f'loop_{l+1}.pth'))
         
