@@ -5,7 +5,9 @@ SDM (Stackelberg Driver Model) ([https://arxiv.org/abs/2309.14235](https://arxiv
 To install the dependencies, run the command:
 
 ```bash
-conda create --name SDM --file requirements.txt
+conda env create -f environment.yml
+conda activate SDM
+pip install -e .
 ```
 Then, download our pre-processed dataset from [here](https://cloud.tsinghua.edu.cn/f/476b8b8824944f4b89dd/?dl=1), and unzip it using
 
