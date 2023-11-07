@@ -2,7 +2,9 @@
 SDM (Stackelberg Driver Model) ([https://arxiv.org/abs/2309.14235](https://arxiv.org/abs/2309.14235)) is a novel approach that aligns with the hierarchical nature of interactions between autonomous vehicle (AV) and background vehicles (BVs), facilitating AV performance improvement in a leader-follower order of play. We empirically demonstrate that AV and BV agents can both achieve better performance during the game with SDM. Essentially, SDM outperforms those competing baselines with simple adversarial training paradigms, non-game modeling and other game modeling approaches, especially in higher dimensional scenarios.
 ![SDM](SDM.png)
 ## Installation and Setups
-To install the dependencies, run the command:
+Before getting started, first you should install SUMO properly following the [sumo documentation](https://sumo.dlr.de/docs/Installing/index.html).
+
+Then, to install the dependencies, run the command:
 
 ```bash
 conda env create -f environment.yml
