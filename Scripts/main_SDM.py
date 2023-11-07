@@ -26,7 +26,7 @@ parser.add_argument('--adv_policy', type = str, default = 'sumo', choices = ['RL
 parser.add_argument('--num_agents', type = int, default = 5)
 parser.add_argument('--r_ego', type = str, default = 'stackelberg', choices = ['r1', 'stackelberg'])
 parser.add_argument('--r_adv', type = str, default = 'stackelberg3')
-parser.add_argument('--realdata_path', type = str, default = '../datasets/dataset/r3_dis_25_car_6')
+# parser.add_argument('--realdata_path', type = str, default = '../datasets/dataset/r3_dis_25_car_6')
 parser.add_argument('--is_save', type = str, default = 'False', choices = ['True', 'False'])
 parser.add_argument('--device', type = str, default = 'cuda:0')
 parser.add_argument('--seed', type = int, default = 42)
@@ -71,6 +71,15 @@ args.is_SN = True if args.is_SN == 'True' else False
 args.use_auto_alpha = True if args.use_auto_alpha == 'True' else False
 args.backup_entropy = True if args.backup_entropy == 'True' else False
 
+realdata_paths = os.listdir('../datasets/dataset/')
+def extract_last_digit(path):
+    # This function extracts the last digit from a string and returns it as an integer.
+    return int(path[-1])
+
+# Sort the realdata_paths list based on the last digit in ascending order.
+sorted_realdata_paths = sorted(realdata_paths, key=extract_last_digit)
+realdata_path = os.path.join('../datasets/dataset', sorted_realdata_paths[args.num_agents - 1])
+# ipdb.set_trace()
 
 
 
@@ -84,7 +93,7 @@ FLAGS_DEF = define_flags_with_default(
     r_ego = args.r_ego,
     r_adv = args.r_adv,
     r_adv_replaybuffer = args.r_adv,
-    realdata_path = args.realdata_path,
+    realdata_path = realdata_path,
     is_save = args.is_save,
     device = args.device,
     seed = args.seed,
