@@ -31,6 +31,10 @@ Then you can run SDM and baselines using following example commands.
 ```bash
 python main_spg_ac_inv.py --r_ego stackelberg --r_adv stackelberg --is_save True --save_model True --adv_policy sumo --num_agents 5
 ```
+If you want to run all ablation experiments (which is relatively time consuming), simply use
+```bash
+bash run.sh
+```
 
 ### Train AV and BV using NSG
 

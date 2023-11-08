@@ -44,7 +44,7 @@ parser.add_argument('--n_loops', type = int, default = 20)
 parser.add_argument('--n_rollout_steps_per_epoch', type = int, default = 1000)
 parser.add_argument('--n_train_step_per_epoch', type = int, default = 500)
 parser.add_argument('--pretrain_ego', type = str, default = 'True', choices = ['True', 'False'])
-parser.add_argument('--pretrain_loop', type = int, default = 2)
+parser.add_argument('--pretrain_loops', type = int, default = 2)
 parser.add_argument('--pretrain_epochs', type = int, default = 100)
 parser.add_argument('--pretrain_steps', type = int, default = 500)
 parser.add_argument('--load_pretrain_ego', type = str, default = 'False', choices = ['True', 'False'])
@@ -129,7 +129,7 @@ FLAGS_DEF = define_flags_with_default(
     gui = args.gui,
     pretrain_ego = args.pretrain_ego,
     pretrain_epochs = args.pretrain_epochs,
-    pretrain_loop = args.pretrain_loop,
+    pretrain_loops = args.pretrain_loops,
     pretrain_steps = args.pretrain_steps,
     load_pretrain_ego = args.load_pretrain_ego,
     pretrain_ego_path = args.pretrain_ego_path,
@@ -178,7 +178,7 @@ def main(argv):
 
     if FLAGS.used_wandb:
         variant = get_user_flags(FLAGS, FLAGS_DEF)
-        wandb_logger = WandbLogger(config=FLAGS.logging, variant=variant)
+        wandb_logger = WandbLogger(config=FLAGS.logging, variant=variant, seed = FLAGS.seed)
         wandb.run.name = f"{FLAGS.model_name}" \
                          f"_Pretrain_Train_Eval_{FLAGS.model_name}" \
                          f"bv={FLAGS.num_agents}-{FLAGS.adv_policy}_" \
@@ -342,9 +342,10 @@ def main(argv):
         sampler_pretrain_ego_policy = SamplerPolicy(model_pre_ego.policy, FLAGS.device)
         sampler_pretrain_ego_policy.set_grad(False)
         
-        for i in range(FLAGS.pretrain_loop):
-            metrics = {}
+        for i in range(FLAGS.pretrain_loops):
+            
             for epoch in trange(FLAGS.pretrain_epochs):
+                metrics = {}
                 pretrain_sampler.env.adv_policy = FLAGS.adv_policy # sumo
                 pretrain_sampler.env.ego_policy = 'RL'
                 # while True:
@@ -356,12 +357,12 @@ def main(argv):
                 metrics['epoch'] = epoch
                 for batch_idx in trange(FLAGS.pretrain_steps):
                     batch = pretrain_replay_buffer.sample(FLAGS.batch_size)
-                    if FLAGS.used_wandb:
-                        wandb_logger.log(prefix_metrics(model_pre_ego.train(batch), 'SAC_Pretrain'))
-                    else:
-                        metrics.update(prefix_metrics(model_pre_ego.train(batch), 'SAC_Pretrain'))
+                    # if FLAGS.used_wandb:
+                    #     wandb_logger.log(prefix_metrics(model_pre_ego.train(batch), 'SAC_Pretrain'))
+                    metrics.update(prefix_metrics(model_pre_ego.train(batch), 'SAC_Pretrain'))
                     
-
+                if FLAGS.used_wandb:
+                    wandb_logger.log(metrics)
                 # eval
                 
                 if epoch == 0 or (epoch + 1) % FLAGS.eval_period == 0:
@@ -379,14 +380,18 @@ def main(argv):
                     )
                     # TODO: add speed
                     Eval(metrics, eval_ego_policy, FLAGS.adv_policy, trajs)
+                    
                     if FLAGS.used_wandb:
-                        wandb_logger.log(metrics)
-        pretrain_replay_buffer.reset()
+                        wandb_logger.log(metrics)  
+                        
+        # pretrain_replay_buffer.reset()
+            
         if FLAGS.save_model:
             torch.save(model_pre_ego, os.path.join(eval_savepath, 'models', 'pretrain_ego.pth'))
-        if FLAGS.save_model and FLAGS.used_wandb:
-            pre_save_data = {'model_pre_ego': model_pre_ego}
-            wandb_logger.save_pickle(pre_save_data, 'pre_model.pkl')
+            if FLAGS.used_wandb:
+                # wandb_logger.log(metrics)
+                pre_save_data = {'model_pre_ego': model_pre_ego}
+                wandb_logger.save_pickle(pre_save_data, 'pre_model.pkl')
         sampler_pretrain_ego_policy = deepcopy(sampler_pretrain_ego_policy) # freezing the pretrain policy
     # return
     # TODO: apply cross learning method
@@ -396,7 +401,7 @@ def main(argv):
         sampler_adv_policy.set_grad(True)
     freeze_ego = False
     freeze_adv = False
-    best_metric_av_crash = 1
+    #  = 1
     # ipdb.set_trace()
     for l in range(FLAGS.n_loops):
         for epoch in trange(FLAGS.n_epochs):
@@ -404,15 +409,14 @@ def main(argv):
             '''leader and follower'''
             metrics = {}
 
-            metrics['epoch'] = epoch
+            # metrics['epoch'] = epoch
             # TODO: Train from the mixed data
             with Timer() as train_timer:
                 train_sampler.env.adv_policy = "RL"
                 train_sampler.env.ego_policy = "RL"
                 if FLAGS.reset_rb:
                     replay_buffer.reset()
-                # while True:
-                # while True:    
+                    
                 train_sampler.sample(
                     ego_policy=sampler_ego_policy, adv_policy=sampler_adv_policy, n_steps=FLAGS.n_rollout_steps_per_epoch,
                     deterministic=False, replay_buffer=replay_buffer,
@@ -420,26 +424,16 @@ def main(argv):
                 ) # Sample trajectories from the simulator using the current policy pi_1, pi_2
 
                 for batch_idx in trange(FLAGS.n_train_step_per_epoch): # at each step of a epoch:
-                    # if batch_idx % FLAGS.n_ego_policy_update_gap == 0 and batch_idx != 0:
-                    #     replay_buffer.reset() # Reset the replay buffer
-                    #     train_sampler.sample(
-                    #         ego_policy=sampler_ego_policy, adv_policy=sampler_adv_policy, n_steps=FLAGS.n_rollout_steps_per_epoch,
-                    #         deterministic=False, replay_buffer=replay_buffer,
-                    #         joint_noise_std=FLAGS.joint_noise_std
-                    #     ) # Sample trajectories from the simulator using the current policy pi_1, pi_2
+
                     batch = replay_buffer.sample(FLAGS.batch_size) # Draw actions a_t^1, a_t^2 from their distributions pi_1, pi_2
 
                     # at the end of each step, train the policy and Q function
                     freeze_ego = not ((batch_idx % FLAGS.n_ego_policy_update_gap) == 0)
                     freeze_adv = not ((batch_idx % FLAGS.n_adv_policy_update_gap) == 0)
-                    if FLAGS.used_wandb:
-                        wandb_logger.log(prefix_metrics(model.train(batch, freeze_ego = freeze_ego, freeze_adv = freeze_adv), FLAGS.model_name))
-                    else:
-                        metrics.update(prefix_metrics(model.train(batch, freeze_ego = freeze_ego, freeze_adv = freeze_adv), FLAGS.model_name))
-                    # ipdb.set_trace()
-                    # if batch_idx % FLAGS.n_ego_policy_update_gap == 0 and batch_idx != 0:
-                    #     sampler_ego_policy = SamplerPolicy(model.ego_policy, FLAGS.device) # Update ego policy at each gap
-
+                    metrics.update(prefix_metrics(model.train(batch, freeze_ego = freeze_ego, freeze_adv = freeze_adv), FLAGS.model_name))
+                if FLAGS.used_wandb:
+                    wandb_logger.log(metrics)
+                    
             # TODO: Evaluate in the real world
             with Timer() as eval_timer:
                 if epoch == 0 or (epoch + 1) % FLAGS.eval_period == 0:
@@ -459,11 +453,6 @@ def main(argv):
                             n_trajs=FLAGS.eval_n_trajs, deterministic=True
                         )
                         Eval(metrics, eval_ego_policy, adv_policy, trajs)
-                        if adv_policy == 'sumo':
-                            if metrics[f'{eval_ego_policy}_{adv_policy}/metrics_av_crash'] < best_metric_av_crash and FLAGS.save_model and FLAGS.is_save:
-                                torch.save(model, os.path.join(eval_savepath, 'models', 'best_av_model.pth'))
-                                best_metric_av_crash = metrics[f'{eval_ego_policy}_{adv_policy}/metrics_av_crash']
-                            metrics['pretrain_vs_game/best_metric_av_crash'] = best_metric_av_crash
 
                     # Eval adv policy
                     for ego_policy in ['sumo', 'fvdm', 'RL']: # this RL ego is pretrained ego
@@ -480,43 +469,25 @@ def main(argv):
                             n_trajs=FLAGS.eval_n_trajs, deterministic=True
                         )
                         Eval(metrics, ego_policy, eval_adv_policy, trajs)
-                    
-                    # Eval av Pretrain + bv SUMO
-                    # eval_sampler.env.ego_policy = 'RL'
-                    # eval_sampler.env.adv_policy = 'sumo'
-                    # s_e = sampler_pretrain_ego_policy
-                    # ego_policy = 'pretrainedRL'
-                    # trajs, _ = eval_sampler.sample(
-                    #     ego_policy=s_e, adv_policy=sampler_adv_policy,
-                    #     n_trajs=FLAGS.eval_n_trajs, deterministic=True
-                    # )
-                    # Eval(metrics, ego_policy, 'sumo', trajs)
-                    # metrics['pretrain_vs_game/pretrain_metric_av_crash'] = metrics[f'{ego_policy}_sumo/metrics_av_crash']
-
-              
-
-            if FLAGS.save_model and FLAGS.used_wandb:
-                save_data = {FLAGS.model_name: model,
-                            'variant': variant, 'epoch': epoch}
-                wandb_logger.save_pickle(save_data, 'model.pkl')
+                    if FLAGS.used_wandb:
+                        wandb_logger.log(metrics)
+               
             # metrics['rollout_time'] = rollout_timer()
             metrics['train_time'] = train_timer()
             metrics['eval_time'] = eval_timer()
             metrics['epoch_time'] = train_timer() + eval_timer()
             if FLAGS.used_wandb:
-                    wandb_logger.log(metrics)
+                    save_data = {FLAGS.model_name: model,
+                            'variant': variant, 'epoch': epoch}
+                    wandb_logger.save_pickle(save_data, 'model.pkl')
             viskit_metrics.update(metrics)
             logger.record_dict(viskit_metrics)
             logger.dump_tabular(with_prefix=False, with_timestamp=False)
 
         # save model for matric Eval
-        # ipdb.set_trace()
-        if l % (FLAGS.n_loops / FLAGS.num_save) == 0 or l == FLAGS.n_loops - 1:
+        if FLAGS.save_model and l % (FLAGS.n_loops / FLAGS.num_save) == 0 or l == FLAGS.n_loops - 1:
             # ipdb.set_trace()
             torch.save(model, os.path.join(eval_savepath, 'models', f'loop_{l+1}.pth'))
-        
-
-
                 
 
     if FLAGS.save_model and FLAGS.used_wandb:

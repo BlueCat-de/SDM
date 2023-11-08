@@ -47,7 +47,7 @@ class WandbLogger(object):
         config = ConfigDict()
         config.online = True
         config.prefix = ''
-        config.project = 'clearning_experimental_13'
+        config.project = 'SDM'
         config.entity = 'ml_cat'
         config.output_dir = './experiment_output'
         config.random_delay = 0.0
@@ -59,7 +59,7 @@ class WandbLogger(object):
             config.update(ConfigDict(updates).copy_and_resolve_references())
         return config
 
-    def __init__(self, config, variant):
+    def __init__(self, config, variant, seed):
         self.config = self.get_default_config(config)
         if self.config.experiment_id is None:
             self.config.experiment_id = uuid.uuid4().hex
@@ -84,7 +84,7 @@ class WandbLogger(object):
         self.run = wandb.init(
             reinit=True,
             config=self._variant,
-            project=self.config.project,
+            project=self.config.project + f'_seed_{seed}',
             entity=self.config.entity,
             dir=self.config.output_dir,
             id=self.config.experiment_id,
