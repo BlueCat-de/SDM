@@ -431,8 +431,8 @@ def main(argv):
                     freeze_ego = not ((batch_idx % FLAGS.n_ego_policy_update_gap) == 0)
                     freeze_adv = not ((batch_idx % FLAGS.n_adv_policy_update_gap) == 0)
                     metrics.update(prefix_metrics(model.train(batch, freeze_ego = freeze_ego, freeze_adv = freeze_adv), FLAGS.model_name))
-                if FLAGS.used_wandb:
-                    wandb_logger.log(metrics)
+                # if FLAGS.used_wandb:
+                #     wandb_logger.log(metrics)
                     
             # TODO: Evaluate in the real world
             with Timer() as eval_timer:
@@ -469,8 +469,8 @@ def main(argv):
                             n_trajs=FLAGS.eval_n_trajs, deterministic=True
                         )
                         Eval(metrics, ego_policy, eval_adv_policy, trajs)
-                    if FLAGS.used_wandb:
-                        wandb_logger.log(metrics)
+                    # if FLAGS.used_wandb:
+                    #     wandb_logger.log(metrics)
                
             # metrics['rollout_time'] = rollout_timer()
             metrics['train_time'] = train_timer()
@@ -481,6 +481,7 @@ def main(argv):
                             'variant': variant, 'epoch': epoch}
                     wandb_logger.save_pickle(save_data, 'model.pkl')
             viskit_metrics.update(metrics)
+            wandb_logger.log(metrics)
             logger.record_dict(viskit_metrics)
             logger.dump_tabular(with_prefix=False, with_timestamp=False)
 

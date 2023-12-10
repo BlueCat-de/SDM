@@ -1,6 +1,6 @@
 import argparse
 import numpy as np
-from utils import define_flags_with_default, WandbLogger, get_user_flags, set_random_seed, Timer, prefix_metrics, eval
+from utils import define_flags_with_default, WandbLogger, get_user_flags, set_random_seed, Timer, prefix_metrics, Eval
 from datetime import datetime
 from SimpleSAC.envs import Env
 from SimpleSAC.sampler import StepSampler, TrajSampler
@@ -323,7 +323,7 @@ def main(argv):
                         n_trajs=FLAGS.eval_n_trajs, deterministic=True
                     )
                     # TODO: add speed
-                    eval(metrics, eval_ego_policy, FLAGS.adv_policy, trajs)
+                    Eval(metrics, eval_ego_policy, FLAGS.adv_policy, trajs)
                     if FLAGS.used_wandb:
                         wandb_logger.log(metrics)
         # if FLAGS.save_model:
@@ -395,7 +395,7 @@ def main(argv):
                             ego_policy=sampler_ego_policy, adv_policy=s_a,
                             n_trajs=FLAGS.eval_n_trajs, deterministic=True
                         )
-                        eval(metrics, eval_ego_policy, adv_policy, trajs)
+                        Eval(metrics, eval_ego_policy, adv_policy, trajs)
 
                     # eval adv policy
                     for ego_policy in ['sumo', 'fvdm', 'RL']: # this RL ego is pretrained ego
@@ -411,7 +411,7 @@ def main(argv):
                             ego_policy=s_e, adv_policy=sampler_adv_policy,
                             n_trajs=FLAGS.eval_n_trajs, deterministic=True
                         )
-                        eval(metrics, ego_policy, eval_adv_policy, trajs)
+                        Eval(metrics, ego_policy, eval_adv_policy, trajs)
 
             if FLAGS.save_model and FLAGS.used_wandb:
                 save_data = {FLAGS.model_name: (model_ego, model_adv),

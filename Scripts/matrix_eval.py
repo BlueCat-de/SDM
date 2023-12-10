@@ -1,6 +1,6 @@
 import argparse
 import numpy as np
-from utils import define_flags_with_default, WandbLogger, get_user_flags, set_random_seed, Timer, prefix_metrics, eval
+from utils import define_flags_with_default, WandbLogger, get_user_flags, set_random_seed, Timer, prefix_metrics, Eval
 from datetime import datetime
 from SimpleSAC.envs import Env
 from SimpleSAC.sampler import StepSampler, TrajSampler
@@ -229,7 +229,7 @@ def main(argv):
                     
                     # TODO: Evaluate in the real world
                     with Timer() as eval_timer:
-                        # eval ego policy
+                        # Eval ego policy
 
                         eval_ego_policy = 'RL'
                         eval_adv_policy = 'RL'
@@ -240,7 +240,7 @@ def main(argv):
                             ego_policy=sampler_ego_policy, adv_policy=sampler_adv_policy,
                             n_trajs=FLAGS.eval_n_trajs, deterministic=True
                         )
-                        eval(metrics, f'{eval_ego_policy}{i}', f'{eval_adv_policy}{j}', trajs)
+                        Eval(metrics, f'{eval_ego_policy}{i}', f'{eval_adv_policy}{j}', trajs)
 
                     if FLAGS.used_wandb:
                         save_data = {FLAGS.model_name: model,
