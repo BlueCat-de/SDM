@@ -1,6 +1,6 @@
 import argparse
 import numpy as np
-from utils import define_flags_with_default, WandbLogger, get_user_flags, set_random_seed, Timer, prefix_metrics, eval
+from utils import define_flags_with_default, WandbLogger, get_user_flags, set_random_seed, Timer, prefix_metrics, Eval
 from datetime import datetime
 from SimpleSAC.envs import Env
 from SimpleSAC.sampler import StepSampler, TrajSampler
@@ -312,7 +312,7 @@ def main(argv):
                         metrics.update(prefix_metrics(model_pre_ego.train(batch), 'SAC_Pretrain'))
                     
 
-                # eval
+                # Eval
                 
                 if epoch == 0 or (epoch + 1) % FLAGS.eval_period == 0:
                     eval_ego_policy = 'RL'
@@ -328,7 +328,7 @@ def main(argv):
                         n_trajs=FLAGS.eval_n_trajs, deterministic=True
                     )
                     # TODO: add speed
-                    eval(metrics, eval_ego_policy, FLAGS.adv_policy, trajs)
+                    Eval(metrics, eval_ego_policy, FLAGS.adv_policy, trajs)
                     if FLAGS.used_wandb:
                         wandb_logger.log(metrics)
         if FLAGS.save_model:
@@ -389,7 +389,7 @@ def main(argv):
             # TODO: Evaluate in the real world
             with Timer() as eval_timer:
                 if epoch == 0 or (epoch + 1) % FLAGS.eval_period == 0:
-                    # eval ego policy
+                    # Eval ego policy
                     for adv_policy in ['sumo', 'fvdm', 'RL']:
                         # ipdb.set_trace()
                         eval_ego_policy = 'RL'
@@ -404,7 +404,7 @@ def main(argv):
                             ego_policy=sampler_ego_policy, adv_policy=s_a,
                             n_trajs=FLAGS.eval_n_trajs, deterministic=True
                         )
-                        eval(metrics, eval_ego_policy, adv_policy, trajs)
+                        Eval(metrics, eval_ego_policy, adv_policy, trajs)
                         # if adv_policy == 'sumo':
                         #     if metrics[f'{eval_ego_policy}_{adv_policy}/metrics_av_crash'] > last_metric_av_crash:
                         #         freeze_ego = True
@@ -412,7 +412,7 @@ def main(argv):
                         #         freeze_ego = False
                         #     last_metric_av_crash = metrics[f'{eval_ego_policy}_{adv_policy}/metrics_av_crash']
 
-                    # eval adv policy
+                    # Eval adv policy
                     for ego_policy in ['sumo', 'fvdm', 'RL']: # this RL ego is pretrained ego
                         eval_adv_policy = 'RL'
                         eval_sampler.env.ego_policy = ego_policy
@@ -426,7 +426,7 @@ def main(argv):
                             ego_policy=s_e, adv_policy=sampler_adv_policy,
                             n_trajs=FLAGS.eval_n_trajs, deterministic=True
                         )
-                        eval(metrics, ego_policy, eval_adv_policy, trajs)
+                        Eval(metrics, ego_policy, eval_adv_policy, trajs)
                         # if ego_policy == 'sumo':
                         #     if metrics[f'{ego_policy}_{eval_adv_policy}/metrics_bv_crash'] > last_metric_bv_crash:
                         #         freeze_adv = True
