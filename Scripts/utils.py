@@ -48,7 +48,7 @@ class WandbLogger(object):
         config.online = True
         config.prefix = ''
         config.project = 'SDM'
-        config.entity = 'ml_cat'
+        config.entity = 'lyy1912696485'
         config.output_dir = './experiment_output'
         config.random_delay = 0.0
         config.experiment_id = config_dict.placeholder(str)
