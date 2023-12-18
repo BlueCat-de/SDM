@@ -157,7 +157,7 @@ def main(argv):
 
     if FLAGS.used_wandb:
         variant = get_user_flags(FLAGS, FLAGS_DEF)
-        wandb_logger = WandbLogger(config=FLAGS.logging, variant=variant)
+        wandb_logger = WandbLogger(config=FLAGS.logging, variant=variant, seed = FLAGS.seed)
         wandb.run.name = f"RARL" \
                          f"_Pretrain_Train_Eval_{FLAGS.model_name}" \
                          f"bv={FLAGS.num_agents}-{FLAGS.adv_policy}_" \
