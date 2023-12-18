@@ -66,7 +66,7 @@ If you are using SDM framework or code for your project development, please cite
 ```
 @article{niu2023stackelberg,
   title={Stackelberg Driver Model for Continual Policy Improvement in Scenario-Based Closed-Loop Autonomous Driving},
-  author={Niu, Haoyi and Chen, Qimao and Li, Yingyue and Hu, Jianming},
+  author={Niu, Haoyi and Chen, Qimao and Li, Yingyue and Zhang, Yi and Hu, Jianming},
   journal={NeurIPS Machine Learning for Autonomous Driving Symposium},
   year={2023}
 }
