@@ -39,6 +39,9 @@ class Env:
 
         self.ego_policy = ego_policy
         self.adv_policy = adv_policy
+        
+        self.up_cut = [0.6 * 9.8 * self.dt, np.pi / 3 * self.dt]
+        self.low_cut = [-0.8 * 9.8 * self.dt, -np.pi / 3 * self.dt]
 
         self.gui = gui
         if self.gui:
@@ -115,15 +118,7 @@ class Env:
                               departLane=0, 
                               departPos=10.0,
                               departSpeed=self.states[0][2])
-        elif self.ego_policy == 'sumo':
-            traci.vehicle.add(vehID = 'car0',
-                              routeID = 'straight',
-                              typeID = 'AV',
-                              depart = cur_time,
-                              departLane = 0,
-                              departPos = 10.0,
-                              arrivalLane=np.random.randint(0, 3),
-                              departSpeed=self.states[0][2])
+        
             
         else:
             traci.vehicle.add(vehID="car0", 
@@ -231,6 +226,8 @@ class Env:
                                    angle = -new_state[3] * 180 / np.pi + 90,
                                    lane = 0, 
                                    edgeID = 0)
+        elif self.ego_policy == "sumo":
+            ...
         
 
         '''adversary vehicles'''
@@ -258,6 +255,8 @@ class Env:
                                        lane = 0,
                                        edgeID = 0)
                 traci.vehicle.setSpeed(vehID = "car" + str(i + 1), speed = new_state[2])
+        elif self.ego_policy == "sumo":
+            ...
 
         traci.simulationStep()
         # time.sleep(0.04)

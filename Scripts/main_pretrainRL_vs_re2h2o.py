@@ -159,7 +159,7 @@ def main(argv):
     FLAGS = absl.flags.FLAGS
     if FLAGS.is_save:
         eval_savepath = "output/" + \
-                        f"bv={FLAGS.num_agents}-{FLAGS.adv_policy}_" \
+                        f"bv={FLAGS.num_agents}-{FLAGS.adv_policy}_"  \
                         f"r-ego={FLAGS.r_ego}_r-adv={FLAGS.r_adv}_" \
                         f"seed={FLAGS.seed}_time={FLAGS.current_time}" \
                         f"reg_scale={FLAGS.reg_scale}_" \
@@ -394,13 +394,6 @@ def main(argv):
                 wandb_logger.save_pickle(pre_save_data, 'pre_model.pkl')
         sampler_pretrain_ego_policy = deepcopy(sampler_pretrain_ego_policy) # freezing the pretrain policy
     # return
-    # TODO: apply cross learning method
-    replay_buffer.reset()
-    if FLAGS.model_name == 'SPG':
-        sampler_ego_policy.set_grad(True)
-        sampler_adv_policy.set_grad(True)
-    freeze_ego = False
-    freeze_adv = False
     #  = 1
     # ipdb.set_trace()
     
@@ -420,99 +413,50 @@ def main(argv):
 
             '''leader and follower'''
             metrics = {}
-
-            # metrics['epoch'] = epoch
-            # TODO: Train from the mixed data
-            with Timer() as train_timer:
-                train_sampler.env.adv_policy = "RL"
-                train_sampler.env.ego_policy = "RL"
-                if FLAGS.reset_rb:
-                    replay_buffer.reset()
-                    
-                train_sampler.sample(
-                    ego_policy=sampler_ego_policy, adv_policy=sampler_adv_policy, n_steps=FLAGS.n_rollout_steps_per_epoch,
-                    deterministic=False, replay_buffer=replay_buffer,
-                    joint_noise_std=FLAGS.joint_noise_std
-                ) # Sample trajectories from the simulator using the current policy pi_1, pi_2
-
-                for batch_idx in trange(FLAGS.n_train_step_per_epoch): # at each step of a epoch:
-
-                    batch = replay_buffer.sample(FLAGS.batch_size) # Draw actions a_t^1, a_t^2 from their distributions pi_1, pi_2
-
-                    # at the end of each step, train the policy and Q function
-                    freeze_ego = not ((batch_idx % FLAGS.n_ego_policy_update_gap) == 0)
-                    freeze_adv = not ((batch_idx % FLAGS.n_adv_policy_update_gap) == 0)
-                    metrics.update(prefix_metrics(model.train(batch, freeze_ego = freeze_ego, freeze_adv = freeze_adv), FLAGS.model_name))
-                if FLAGS.used_wandb:
-                    wandb_logger.log(metrics)
-                    
+ 
             # TODO: Evaluate in the real world
             with Timer() as eval_timer:
                 if epoch == 0 or (epoch + 1) % FLAGS.eval_period == 0:
-                    # Eval ego policy
-                    for adv_policy in ['sumo', 'fvdm', 'RL', 're2h2o']:
-                        # ipdb.set_trace()
-                        eval_ego_policy = 'RL'
-                        eval_sampler.env.ego_policy = eval_ego_policy
-                        if adv_policy == 're2h2o':
-                            eval_sampler.env.adv_policy = 'RL'
-                        else:
-                            eval_sampler.env.adv_policy = adv_policy
-                        if adv_policy == 'RL':
-                            s_a = sampler_adv_policy
-                        elif adv_policy == 're2h2o':
-                            s_a = sampler_adv_re2h2o_policy
-                        else:
-                            s_a = None
-                        # ipdb.set_trace()
-                        trajs, _ = eval_sampler.sample(
-                            ego_policy=sampler_ego_policy, adv_policy=s_a,
+                    # Eval
+                    eval_sampler.env.ego_policy = 'RL'
+                    eval_sampler.env.adv_policy = 'RL'
+                    s_e = sampler_pretrain_ego_policy
+                    ego_policy = 'pretrainedRL'
+                    adv_policy = 're2h2o'
+                    s_a = sampler_adv_re2h2o_policy
+                    trajs, _ = eval_sampler.sample(
+                            ego_policy=s_e, adv_policy=s_a,
                             n_trajs=FLAGS.eval_n_trajs, deterministic=True
                         )
-                        Eval(metrics, eval_ego_policy, adv_policy, trajs)
-
-                    # Eval adv policy
-                    for ego_policy in ['sumo', 'fvdm', 'RL']: # this RL ego is pretrained ego
-                        eval_adv_policy = 'RL'
-                        eval_sampler.env.ego_policy = ego_policy
-                        eval_sampler.env.adv_policy = eval_adv_policy
-                        if ego_policy != 'RL':
-                            s_e = None
-                        else:
-                            s_e = sampler_pretrain_ego_policy
-                            ego_policy = 'pretrainedRL'
-                        trajs, _ = eval_sampler.sample(
-                            ego_policy=s_e, adv_policy=sampler_adv_policy,
-                            n_trajs=FLAGS.eval_n_trajs, deterministic=True
-                        )
-                        Eval(metrics, ego_policy, eval_adv_policy, trajs)
+                    Eval(metrics, ego_policy, adv_policy, trajs)
+                    
                     if FLAGS.used_wandb:
                         wandb_logger.log(metrics)
                
             # metrics['rollout_time'] = rollout_timer()
-            metrics['train_time'] = train_timer()
+            # metrics['train_time'] = train_timer()
             metrics['eval_time'] = eval_timer()
-            metrics['epoch_time'] = train_timer() + eval_timer()
+            # metrics['epoch_time'] = train_timer() + eval_timer()
             if FLAGS.used_wandb:
-                    save_data = {FLAGS.model_name: model,
-                            'variant': variant, 'epoch': epoch}
-                    wandb_logger.save_pickle(save_data, 'model.pkl')
+                save_data = {FLAGS.model_name: model,
+                        'variant': variant, 'epoch': epoch}
+                wandb_logger.save_pickle(save_data, 'model.pkl')
             viskit_metrics.update(metrics)
             logger.record_dict(viskit_metrics)
             logger.dump_tabular(with_prefix=False, with_timestamp=False)
 
         # save model for matric Eval
-        if FLAGS.save_model and l % (FLAGS.n_loops / FLAGS.num_save) == 0 or l == FLAGS.n_loops - 1:
-            # ipdb.set_trace()
-            torch.save(model, os.path.join(eval_savepath, 'models', f'loop_{l+1}.pth'))
+        # if FLAGS.save_model and l % (FLAGS.n_loops / FLAGS.num_save) == 0 or l == FLAGS.n_loops - 1:
+        #     # ipdb.set_trace()
+        #     torch.save(model, os.path.join(eval_savepath, 'models', f'loop_{l+1}.pth'))
                 
 
     if FLAGS.save_model and FLAGS.used_wandb:
         save_data = {FLAGS.model_name: model,
-                     'variant': variant, 'epoch': epoch}
+                    'variant': variant, 'epoch': epoch}
         wandb_logger.save_pickle(save_data, 'model.pkl')
-    if FLAGS.save_model:
-        torch.save(model, os.path.join(eval_savepath, 'models', 'trained_model.pth'))
+    # if FLAGS.save_model:
+    #     torch.save(model, os.path.join(eval_savepath, 'models', 'trained_model.pth'))
 
 if __name__ == '__main__':
     absl.app.run(main)
